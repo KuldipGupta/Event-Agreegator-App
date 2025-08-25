@@ -1,0 +1,129 @@
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
+}
+
+.auth-appname {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 1.2rem;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 8px rgba(60,60,120,0.12);
+}
+
+.auth-form {
+  background: #fff;
+  padding: 2.5rem 2rem 2rem 2rem;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(60, 60, 120, 0.12);
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.auth-form h2 {
+  text-align: center;
+  color: #6366f1;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.auth-form input,
+.auth-form select {
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 1rem;
+  background: #f1f5f9;
+  transition: border 0.2s;
+}
+
+.auth-form input:focus,
+.auth-form select:focus {
+  border-color: #6366f1;
+  outline: none;
+}
+
+.auth-btn {
+  background: linear-gradient(90deg, #6366f1 0%, #3b82f6 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.2s;
+}
+
+.auth-btn:hover {
+  background: linear-gradient(90deg, #3b82f6 0%, #6366f1 100%);
+}
+
+.switch-link {
+  text-align: center;
+  font-size: 1rem;
+  color: #64748b;
+}
+
+.switch-link a {
+  color: #6366f1;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.switch-link a:hover {
+  text-decoration: underline;
+}
+
+.message {
+  text-align: center;
+  margin-top: 0.5rem;
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.social-signin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: #f1f5f9;
+  color: #334155;
+  transition: background 0.2s;
+}
+
+.social-btn.google { border-left: 4px solid #ea4335; }
+.social-btn.github { border-left: 4px solid #333; }
+.social-btn.linkedin { border-left: 4px solid #0a66c2; }
+
+.social-btn:hover {
+  background: #e0e7ff;
+}
+
+.social-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
