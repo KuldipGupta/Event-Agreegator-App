@@ -4,10 +4,23 @@ const jwt = require('jsonwebtoken');
 
 exports.register = async (req, res) => {
   try {
-    const { name, username, password, email, role } = req.body;
+    const { name, username, password, email, collegeName, dob, gender, age, department, mobile } = req.body;
     const hashed = await bcrypt.hash(password, 10);
 
-    const user = await User.create({ ...req.body, password: hashed, role });
+    // Explicitly whitelist fields — never spread req.body to prevent mass assignment (role, admin escalation, etc.)
+    const user = await User.create({
+      name,
+      username,
+      email,
+      password: hashed,
+      collegeName,
+      dob,
+      gender,
+      age,
+      department,
+      mobile,
+      role: 'user'
+    });
     res.status(201).json({ message: 'Registered successfully' });
   } catch (err) {
     res.status(400).json({ message: 'Registration failed', error: err.message });

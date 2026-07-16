@@ -12,6 +12,16 @@ const EventDashboard = () => {
   const [platformFilter, setPlatformFilter] = useState('');
   const navigate = useNavigate();
 
+  const getPlatformName = (event) => {
+    const resource = event?.resource;
+    if (!resource) return '';
+    if (typeof resource === 'string') return resource;
+    if (typeof resource === 'object') {
+      return (resource.name || resource.host || resource.short || '').toString();
+    }
+    return String(resource);
+  };
+
   useEffect(() => {
     const fetchEvents = async () => {
       setLoading(true);
@@ -20,15 +30,24 @@ const EventDashboard = () => {
       const now = new Date();
       const start = new Date(now);
       const end = new Date(now);
-      start.setDate(start.getDate() - 15);
+
+      // Fetch only the next 15 days
       end.setDate(end.getDate() + 15);
 
-    const url = `/api/clist/contests?start=${start.toISOString()}&end=${end.toISOString()}`;
+      // Format dates as YYYY-MM-DD (Clist API format)
+      const startStr = start.toISOString().split('T')[0];
+      const endStr = end.toISOString().split('T')[0];
+
+      console.log('Requesting date range:', startStr, 'to', endStr);
+
+      const platformParam = platformFilter.trim() ? `&resource=${encodeURIComponent(platformFilter.trim())}` : '';
+      const url = `/api/clist/contests?start=${startStr}&end=${endStr}${platformParam}`;
 
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`API error: ${res.status}`);
         const data = await res.json();
+        console.log('Fetched events:', data.objects?.length || 0);
         setEvents(data.objects || []);
       } catch (err) {
         setError('Failed to fetch contests. Please check your API key or network.');
@@ -38,26 +57,32 @@ const EventDashboard = () => {
     };
 
     fetchEvents();
-  }, []);
+  }, [platformFilter]);
 
-  const nowUTC = new Date().getTime();
+  const nowUTC = Date.now();
   const fifteenDaysMs = 15 * 24 * 60 * 60 * 1000;
 
   const filteredEvents = platformFilter
-    ? events.filter(e =>
-        (e.resource || '').toLowerCase().includes(platformFilter.toLowerCase())
-      )
+    ? events.filter(e => getPlatformName(e).toLowerCase().includes(platformFilter.toLowerCase()))
     : events;
-
-  const pastEvents = filteredEvents.filter(e => {
-    const startTime = new Date(e.start).getTime();
-    return startTime < nowUTC && startTime >= (nowUTC - fifteenDaysMs);
-  });
 
   const upcomingEvents = filteredEvents.filter(e => {
     const startTime = new Date(e.start).getTime();
+    if (Number.isNaN(startTime)) return false;
     return startTime >= nowUTC && startTime <= (nowUTC + fifteenDaysMs);
   });
+
+  console.log('Total events:', events.length);
+  console.log('Filtered events:', filteredEvents.length);
+  console.log('Upcoming events:', upcomingEvents.length);
+  console.log('Now UTC:', new Date(nowUTC).toISOString());
+  if (upcomingEvents.length === 0 && events.length > 0) {
+    console.log('Sample event dates:', events.slice(0, 3).map(e => ({ 
+      event: e.event, 
+      start: e.start, 
+      parsed: new Date(e.start).toISOString() 
+    })));
+  }
 
   const handleSearch = () => {
     setPlatformFilter(platformInput.trim());
@@ -117,7 +142,7 @@ const EventDashboard = () => {
       <div className="search-bar">
         <input
           type="text"
-          placeholder="Platform (e.g. Codeforces, AtCoder)"
+          placeholder="Platform (e.g. Codeforces, LeetCode)"
           value={platformInput}
           onChange={e => setPlatformInput(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -136,35 +161,7 @@ const EventDashboard = () => {
           <div className="event-card" key={e.id}>
             <h3 className="event-title">{e.event}</h3>
             <p className="event-platform">
-              <strong>Platform:</strong> {e.resource || 'Unknown'}
-            </p>
-            <p className="event-start">
-              <strong>Start:</strong> {new Date(e.start).toLocaleString()}
-            </p>
-            <p className="event-duration">
-              <strong>Duration:</strong> {Math.floor(e.duration / 3600)}h {Math.floor((e.duration / 60) % 60)}m
-            </p>
-            <a className="event-link" href={e.href} target="_blank" rel="noopener noreferrer">
-              Visit Event
-            </a>
-            <div>
-              <button className="event-action-btn" onClick={() => handleRegister(e)}>Register</button>
-              <button className="event-action-btn" onClick={() => handleFavorite(e)}>Favorite</button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <h2 className="dashboard-title" style={{marginTop: '40px'}}>Past Contests (Last 15 Days)</h2>
-      {!loading && !error && pastEvents.length === 0 && (
-        <p className="no-events">No past contests found.</p>
-      )}
-      <div className="event-list">
-        {pastEvents.map((e) => (
-          <div className="event-card" key={e.id}>
-            <h3 className="event-title">{e.event}</h3>
-            <p className="event-platform">
-              <strong>Platform:</strong> {e.resource || 'Unknown'}
+              <strong>Platform:</strong> {getPlatformName(e) || 'Unknown'}
             </p>
             <p className="event-start">
               <strong>Start:</strong> {new Date(e.start).toLocaleString()}

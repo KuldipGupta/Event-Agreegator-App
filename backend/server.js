@@ -9,29 +9,42 @@ const userEventsRoutes = require('./routes/userEvents');
 const connectDB = require('./config/db');
 const contactRoutes = require('./routes/contact');
 const clistRoutes = require('./routes/clist');
+const logger = require('./utils/logger');
+const { errorHandler } = require('./utils/errorHandler');
+const { generalLimiter, authLimiter } = require('./middleware/rateLimiter');
+const { startReminderScheduler } = require('./utils/reminderScheduler');
 
 connectDB();
 const app = express();
 
-app.use(cors());
+app.set('trust proxy', 1);
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  credentials: true
+}));
 app.use(express.json());
 
+// Apply rate limiters
+app.use(generalLimiter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/user', userEventsRoutes);
+
 // API routes
 app.use('/api/clist', clistRoutes);
 app.use('/api/contact', contactRoutes);
-app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/auth', authLimiter, require('./routes/authRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
 app.use('/api/contests', require('./routes/contestRoutes'));
-app.use('/api/profile', require('./routes/profile')); // If your file is profile.js
+app.use('/api/profile', require('./routes/profile'));
+app.use('/api/tracking', require('./routes/trackingRoutes'));
 
-const clientBuildPath = path.join(__dirname, 'client', 'build');
+const clientBuildPath = process.env.CLIENT_BUILD_PATH
+  ? path.resolve(process.env.CLIENT_BUILD_PATH)
+  : path.join(__dirname, '..', 'frontend', 'build');
 if (fs.existsSync(clientBuildPath)) {
     app.use(express.static(clientBuildPath));
     app.get('*', (req, res) => {
-        // Only serve index.html for non-API routes
         if (!req.originalUrl.startsWith('/api/')) {
             res.sendFile(path.join(clientBuildPath, 'index.html'));
         } else {
@@ -39,17 +52,24 @@ if (fs.existsSync(clientBuildPath)) {
         }
     });
 } else {
-    console.warn('⚠️  client/build not found. React frontend will not be served.');
+    logger.warn(`${clientBuildPath} not found. React frontend will not be served.`);
 }
 
-// Error handler should be last
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(err.statusCode || 500).json({
-        message: err.message || 'Something went wrong on the server.',
-        error: process.env.NODE_ENV === 'development' ? err : {}
-    });
-});
+// Global error handler (must be last)
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+const server = app.listen(PORT, () => {
+    logger.info(`✅ Server running on port ${PORT}`);
+    // Start reminder scheduler
+    startReminderScheduler();
+});
+
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        logger.error(`Port ${PORT} is already in use. Set PORT to an open port or stop the process using it.`);
+        process.exit(1);
+    }
+    logger.error('Server error', { error: err });
+    process.exit(1);
+});

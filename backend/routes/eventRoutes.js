@@ -5,8 +5,26 @@ const { protect, adminOnly } = require('../middleware/authMiddleware');
 
 // Get all events (public)
 router.get('/', async (req, res) => {
-  const events = await Event.find();
-  res.json(events);
+  try {
+    const today = new Date();
+    const thirtyDaysAgo = new Date();
+    const thirtyDaysLater = new Date();
+    
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    thirtyDaysLater.setDate(today.getDate() + 30);
+
+    // Get both past 30 days and upcoming 30 days events
+    const events = await Event.find({
+      date: {
+        $gte: thirtyDaysAgo,
+        $lte: thirtyDaysLater
+      }
+    }).sort({ date: 1 }); // Sort by date ascending
+
+    res.json(events);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // Create event (admin only)

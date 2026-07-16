@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/user');
 const Event = require('../models/event');
 const { protect } = require('../middleware/authMiddleware');
+const { createRemindersForUser, sendRegistrationNotifications } = require('../utils/reminderScheduler');
 
 // Register for an event (handles external contests)
 router.post('/register/:eventId', protect, async (req, res) => {
@@ -25,6 +26,12 @@ router.post('/register/:eventId', protect, async (req, res) => {
   if (!user.registrations.includes(event._id)) {
     user.registrations.push(event._id);
     await user.save();
+
+    // Always schedule a one-day reminder via both channels (email + in-app message)
+    await createRemindersForUser(user._id, event._id, { hoursBeforeList: [24], type: 'both' });
+
+    // Immediate registration notifications using profile email/mobile
+    await sendRegistrationNotifications(user._id, event._id);
   }
   res.json({ message: 'Registered for event' });
 });
