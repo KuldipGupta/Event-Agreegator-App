@@ -1,9 +1,9 @@
+const path = require('path');
 const dotenv = require('dotenv');
-dotenv.config({ path: './config/config.env' });
+dotenv.config({ path: path.join(__dirname, 'config', 'config.env') });
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
 const fs = require('fs');
 const userEventsRoutes = require('./routes/userEvents');
 const connectDB = require('./config/db');

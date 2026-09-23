@@ -18,7 +18,7 @@ const ReminderSettings = () => {
   const fetchPreferences = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/tracking/reminders/preferences', {
+      const response = await axios.get('/api/tracking/reminders/preferences', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPreferences(response.data.reminderPreferences);
@@ -58,7 +58,7 @@ const ReminderSettings = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        'http://localhost:5000/api/tracking/reminders/preferences',
+        '/api/tracking/reminders/preferences',
         preferences,
         { headers: { Authorization: `Bearer ${token}` } }
       );
