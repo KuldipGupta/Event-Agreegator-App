@@ -100,7 +100,7 @@ const EventDashboard = () => {
       alert('Please login to register for contests.');
       return;
     }
-    await fetch('/api/user/register/' + event.id, {
+    const response = await fetch('/api/user/register/' + event.id, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -108,6 +108,11 @@ const EventDashboard = () => {
       },
       body: JSON.stringify(event)
     });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      alert(data.message || 'Registration failed. Please try again.');
+      return;
+    }
     alert('Registered for contest!');
   };
 

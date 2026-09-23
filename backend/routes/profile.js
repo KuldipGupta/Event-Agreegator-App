@@ -1,27 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const User = require('../models/user');
 const auth = require('../middleware/authMiddleware');
 
-// Ensure uploads/profile directory exists
-const uploadDir = path.join(__dirname, '..', 'uploads', 'profile');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
+// Store profile images in MongoDB so they survive Render restarts and deploys.
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    cb(null, file.mimetype.startsWith('image/'));
   }
 });
-
-const upload = multer({ storage: storage });
 
 router.get('/', auth.protect, async (req, res) => {
   try {
@@ -60,7 +50,7 @@ router.post('/profile-image', auth.protect, upload.single('profileImage'), async
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
-    const profileImageUrl = `/uploads/profile/${req.file.filename}`;
+    const profileImageUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
     const user = await User.findByIdAndUpdate(
       req.user.id,
       { profileImage: profileImageUrl },

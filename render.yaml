@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: event-management
+    runtime: node
+    plan: free
+    buildCommand: npm run install:all && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        sync: false
+      - key: CLIST_USERNAME
+        sync: false
+      - key: CLIST_API_KEY
+        sync: false
+      - key: EMAIL_SERVICE
+        value: gmail
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: SMS_API_KEY
+        sync: false
+      - key: SMS_API_URL
+        value: https://www.fast2sms.com/dev/bulkV2
+      - key: SMS_ROUTE
+        value: q
+      - key: SMS_SENDER_ID
+        value: FSTSMS
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        value: "6379"
+      - key: REDIS_PASSWORD
+        sync: false

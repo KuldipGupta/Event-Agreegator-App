@@ -83,7 +83,11 @@ exports.registerForEvent = async (req, res) => {
 
     // Create a one-day reminder using both channels (email + in-app message)
     await createRemindersForUser(userId, eventId, { hoursBeforeList: [24], type: 'both' });
-    await sendRegistrationNotifications(userId, eventId);
+    setImmediate(() => {
+      sendRegistrationNotifications(userId, eventId).catch((notificationError) => {
+        console.error('Registration notification failed:', notificationError.message);
+      });
+    });
 
     res.json({
       message: 'Successfully registered for event',

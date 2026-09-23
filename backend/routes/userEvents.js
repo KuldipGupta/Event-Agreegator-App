@@ -30,8 +30,12 @@ router.post('/register/:eventId', protect, async (req, res) => {
     // Always schedule a one-day reminder via both channels (email + in-app message)
     await createRemindersForUser(user._id, event._id, { hoursBeforeList: [24], type: 'both' });
 
-    // Immediate registration notifications using profile email/mobile
-    await sendRegistrationNotifications(user._id, event._id);
+    // Do not make the registration response wait for external email/SMS services.
+    setImmediate(() => {
+      sendRegistrationNotifications(user._id, event._id).catch((error) => {
+        console.error('Registration notification failed:', error.message);
+      });
+    });
   }
   res.json({ message: 'Registered for event' });
 });

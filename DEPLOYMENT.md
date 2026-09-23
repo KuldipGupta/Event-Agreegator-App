@@ -1,5 +1,16 @@
 # Deployment
 
+## Render
+
+The repository includes `render.yaml`. In Render, choose **New > Blueprint**, connect the GitHub repository, and select the `master` branch. Render will read the build and start commands from the Blueprint.
+
+After the service is created:
+
+1. Add the `MONGO_URI`, `CLIENT_URL`, and optional service credentials in the Render Environment settings.
+2. Set `CLIENT_URL` to the HTTPS URL Render assigns to the service, such as `https://event-management.onrender.com`.
+3. In MongoDB Atlas, allow the Render service's outbound access. Render Free instances do not provide a fixed outbound IP, so use Atlas's temporary `0.0.0.0/0` rule if required and protect the database with a strong database password.
+4. Trigger a deploy and test registration, login, events, and profile uploads.
+
 ## Recommended: one Node service
 
 The backend serves `frontend/build`, so the simplest deployment is one web service from the repository root.

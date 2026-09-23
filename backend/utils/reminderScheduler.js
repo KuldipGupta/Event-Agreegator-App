@@ -162,6 +162,11 @@ const sendInAppMessage = async (user, event, hoursBeforeEvent) => {
 
 // Send email reminder
 const sendEmailReminder = async (user, event, hoursBeforeEvent) => {
+  if (!user.email) {
+    logger.warn(`Skipping reminder email: user ${user.username || user._id} has no email address`);
+    return false;
+  }
+
   if (!transporter) {
     logger.warn('Skipping reminder email: SMTP credentials are not configured');
     return false;
@@ -336,12 +341,20 @@ const processPendingReminders = async () => {
         smsSent = await sendSmsReminder(user, event, reminder.hoursBeforeEvent);
       }
 
-      if (emailSent || messageSent || smsSent) {
+      const emailRequired = reminder.type === 'email' || reminder.type === 'both';
+      const messageRequired = reminder.type === 'in-app' || reminder.type === 'both';
+      const reminderDelivered = (!emailRequired || emailSent) && (!messageRequired || messageSent);
+
+      if (reminderDelivered) {
         reminder.sent = true;
         await reminder.save();
       }
 
-      console.log(`Reminder sent to ${user.username} for event ${event.title}`);
+      if (reminderDelivered) {
+        console.log(`Reminder sent to ${user.username} for event ${event.title}`);
+      } else {
+        logger.warn(`Reminder delivery incomplete for ${user.username}; it will be retried`);
+      }
     }
   } catch (error) {
     console.error('Error processing reminders:', error);

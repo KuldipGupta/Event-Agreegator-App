@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
   age: String,
   department: String,
   mobile: String,
+  profileImage: String,
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
   registrations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
